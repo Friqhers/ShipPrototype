@@ -99,10 +99,6 @@ private:
 	ETraceTypeQuery TraceType;
 	bool bDied;
 
-
-	void FindTargetMoveLocation();
-	TArray<FHitResult> GetHitsAroundActor();
-
 	////
 	FVector CalculateSeekForce();
 	FVector CalculateAvoidanceForce();
