@@ -79,7 +79,7 @@ void ASPEnemyBase::Tick(float DeltaTime)
 	TargetPlayer = Cast<ASPShip>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
 	if(!TargetPlayer)
 	{
-		GetWorldTimerManager().ClearTimer(TimerHandle_RandomPositionOnCircle);
+		GetWorldTimerManager().ClearTimer(TimerHandle_FindSuitablePositionAroundPlayer);
 		return;
 	}
 
@@ -109,8 +109,8 @@ void ASPEnemyBase::Tick(float DeltaTime)
 			// check if in fire range
 			if(FVector::Dist(GetActorLocation(), TargetPlayer->GetActorLocation()) <= FireRange)
 			{
-				GetWorldTimerManager().ClearTimer(TimerHandle_RandomPositionOnCircle);
-				GetWorldTimerManager().SetTimer(TimerHandle_RandomPositionOnCircle,this, &ASPEnemyBase::FindSuitablePositionAroundPlayer,
+				GetWorldTimerManager().ClearTimer(TimerHandle_FindSuitablePositionAroundPlayer);
+				GetWorldTimerManager().SetTimer(TimerHandle_FindSuitablePositionAroundPlayer,this, &ASPEnemyBase::FindSuitablePositionAroundPlayer,
 					MoveFailSeconds,true,0);
 				EnemyState = EEnemyState::CircleAroundPlayer;
 			}
@@ -140,8 +140,8 @@ void ASPEnemyBase::Tick(float DeltaTime)
 
 			if(MoveLocation.Equals(GetActorLocation(), Extent.Size()))
 			{
-				GetWorldTimerManager().ClearTimer(TimerHandle_RandomPositionOnCircle);
-				GetWorldTimerManager().SetTimer(TimerHandle_RandomPositionOnCircle,this, &ASPEnemyBase::FindSuitablePositionAroundPlayer,
+				GetWorldTimerManager().ClearTimer(TimerHandle_FindSuitablePositionAroundPlayer);
+				GetWorldTimerManager().SetTimer(TimerHandle_FindSuitablePositionAroundPlayer,this, &ASPEnemyBase::FindSuitablePositionAroundPlayer,
 					MoveFailSeconds,true,0);
 			}
 			
@@ -150,7 +150,7 @@ void ASPEnemyBase::Tick(float DeltaTime)
 			{
 				if(WeaponBase)
 					WeaponBase->StopFire();
-				GetWorldTimerManager().ClearTimer(TimerHandle_RandomPositionOnCircle);
+				GetWorldTimerManager().ClearTimer(TimerHandle_FindSuitablePositionAroundPlayer);
 				EnemyState = EEnemyState::FlyToPlayer;
 			}
 			break;
@@ -202,7 +202,7 @@ void ASPEnemyBase::OnHealthChanged(USPHealthComponent* InHealthComp, float Healt
 	}
 }
 
-FVector ASPEnemyBase::CalculateSeekForce()
+FVector ASPEnemyBase::CalculateSeekForce() const
 {
 	const FVector DesiredVelocity = (MoveLocation - GetActorLocation()).GetSafeNormal() * MaxVelocity;
 
@@ -235,7 +235,8 @@ FVector ASPEnemyBase::CalculateAvoidanceForce()
 	if(HitResult.bBlockingHit)
 	{
 		FVector ObstacleLocation = HitResult.ImpactPoint;
-		FVector AvoidanceDirection = (CurrentLocation - ObstacleLocation).GetSafeNormal();
+		//FVector AvoidanceDirection = (CurrentLocation - ObstacleLocation).GetSafeNormal();
+		FVector AvoidanceDirection = HitResult.Normal;
         
 		// Apply the avoidance force
 		return AvoidanceDirection * AvoidanceStrength;

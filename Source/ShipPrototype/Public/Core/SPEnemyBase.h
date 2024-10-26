@@ -78,29 +78,53 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void PossessedBy(AController* NewController) override;
-
-
+	
 	UFUNCTION()
 	virtual void OnHealthChanged(USPHealthComponent* InHealthComp, float Health, float HealthDelta,
 		const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-	EEnemyState GetEnemyState(){return EnemyState;}
+	EEnemyState GetEnemyState() const{return EnemyState;}
 private:
+	
 	UPROPERTY()
 	ASPShip* TargetPlayer;
 	UPROPERTY()
 	UFloatingPawnMovement* FloatingPawnMovement;
 
+	// Current state of the enemy
 	EEnemyState EnemyState;
-	FTimerHandle TimerHandle_RandomPositionOnCircle;
+	
+	FTimerHandle TimerHandle_FindSuitablePositionAroundPlayer;
+	
+	// The target location that the enemy is currently moving toward
 	FVector MoveLocation;
+	
 	FVector Origin, Extent;
+	
 	ETraceTypeQuery TraceType;
+	
 	bool bDied;
+	
+	/**
+	 * @brief Calculates the seek force needed to move towards the MoveLocation.
+	 *  The resulting force is scaled by the SteeringStrength
+	 * 
+	 * @returns The computed seek force as an FVector.
+	 */
+	FVector CalculateSeekForce() const;
 
-	////
-	FVector CalculateSeekForce();
+	/**
+	 * @brief Checks for collisions in front by tracing a box in the direction of the current velocity. 
+	 *  If there is an collision the force is calculated by the Hit.Normal * AvoidanceStrength
+	 *
+	 *  @returns The computed avoidance force as an FVector.
+	 */
 	FVector CalculateAvoidanceForce();
+
+	/**
+	 * @brief Find a random position within the player’s fire range that is both valid and reachable.
+	 * Once a position is found, it sets the MoveLocation to this position.
+	 */
 	void FindSuitablePositionAroundPlayer();
 };
